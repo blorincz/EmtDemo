@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react'
+import { useEffect, useState, type SubmitEvent } from 'react'
 import './App.css'
 
 type Incident = {
@@ -17,7 +17,7 @@ type Incident = {
 
 const QUEUE_KEY = 'emt-offline-queue'
 
-const getApiBase = () => import.meta.env.VITE_API_BASE_URL ?? 'https://localhost:7245'
+const getApiBase = () => import.meta.env.VITE_API_BASE_URL ?? 'https://localhost:7112'
 
 function App() {
   const [incident, setIncident] = useState<Incident>({
@@ -87,7 +87,7 @@ function App() {
     }
   }, [])
 
-  const submit = async (event: FormEvent) => {
+  const submit = async (event: SubmitEvent) => {
     event.preventDefault()
     const payload = { ...incident, incidentAt: new Date(incident.incidentAt).toISOString() }
 
