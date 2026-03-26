@@ -1,4 +1,4 @@
-import { useEffect, useState, type SubmitEvent } from "react";
+import { useCallback, useEffect, useState, type SubmitEvent } from "react";
 import "./App.css";
 
 type Incident = {
@@ -57,7 +57,7 @@ function App() {
     setQueue(items);
   };
 
-  const syncQueue = async () => {
+  const syncQueue = useCallback(async () => {
     const items = loadQueue();
     if (!items.length) return;
     const api = `${getApiBase()}/api/incidents`;
@@ -78,7 +78,7 @@ function App() {
       console.error("Sync failed", error);
       setStatus("Offline queue not synced yet");
     }
-  };
+  }, []);
 
   const resetForm = () => {
     setIncident(getDefaultIncident());
@@ -109,7 +109,7 @@ function App() {
       window.removeEventListener("online", onOnline);
       window.removeEventListener("offline", onOffline);
     };
-  }, []);
+  }, [syncQueue]);
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
@@ -148,7 +148,7 @@ function App() {
       setStatus("Incident submitted successfully");
       await syncQueue();
       resetForm();
-    } catch (error) {
+    } catch {
       const updated = [...loadQueue(), payload];
       saveQueue(updated);
       setStatus("Submit failed online; queued offline");
