@@ -41,6 +41,12 @@ using (var scope = app.Services.CreateScope())
     await DatabaseInitializer.InitializeAsync(db, logger);
 }
 
+app.MapGet("/api/health", () => Results.Ok(new
+{
+    status = "healthy",
+    timestamp = DateTime.UtcNow
+})).WithName("HealthCheck");
+
 app.MapGet("/api/incidents", async (HttpContext http, EmtDbContext db, string? patientName, DateTime? from, DateTime? to) =>
 {
     var query = db.Incidents.AsQueryable();

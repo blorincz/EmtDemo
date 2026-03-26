@@ -13,13 +13,13 @@
             <th>Temp (°C)</th>
             <th>SpO2</th>
             <th>RR</th>
-            <th></th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var i in Model)
         {
-            <tr>
+            <tr data-incident-id="@i.Id">
                 <td>@i.Id</td>
                 <td>@i.PatientName</td>
                 <td>@i.IncidentAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
@@ -31,8 +31,11 @@
                 <td>@i.SpO2</td>
                 <td>@i.RespiratoryRate</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary" onclick="showDetails(@i.Id)">
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="showDetails(@i.Id)">
                         Details
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteIncident(@i.Id)">
+                        Delete
                     </button>
                 </td>
             </tr>

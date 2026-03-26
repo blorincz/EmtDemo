@@ -4,6 +4,28 @@
     ViewData["Title"] = "Incident Monitor";
 }
 
+<style>
+    @@keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    .toast-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 250px;
+        animation: slideIn 0.3s ease-out;
+    }
+</style>
+
 <h1>Incident Monitor</h1>
 <p>Sort and filter by patient and date range using the API data.</p>
 
@@ -82,6 +104,68 @@
             }
         }
 
+        // Delete incident
+        async function deleteIncident(incidentId) {
+            try {
+                const response = await fetch(`/incident/delete/${incidentId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    // Remove the row immediately for better UX
+                    const row = document.querySelector(`tr[data-incident-id="${incidentId}"]`);
+                    if (row) {
+                        row.remove();
+                    }
+
+                    // Check if table is now empty
+                    const tbody = document.querySelector('#incidentTableContainer tbody');
+                    if (tbody && tbody.children.length === 0) {
+                        // Reload to show "no incidents" message
+                        await loadIncidents();
+                    }
+
+                    // Show temporary success indicator
+                    showToast('Incident deleted successfully', 'success');
+                } else {
+                    const error = await response.json();
+                    showToast(error.message || 'Failed to delete incident', 'danger');
+                }
+            } catch (error) {
+                console.error('Error deleting incident:', error);
+                showToast('Error deleting incident', 'danger');
+            }
+        }
+
+        // Simple toast notification
+        function showToast(message, type = 'info') {
+            // Remove existing toast if any
+            const existingToast = document.querySelector('.toast-notification');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast-notification alert alert-${type} alert-dismissible fade show`;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+
+            document.body.appendChild(toast);
+
+            // Auto-remove after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
         // Show incident details in modal
         async function showDetails(incidentId) {
             const modalContent = document.getElementById('modalContent');
@@ -149,14 +233,20 @@
         });
 
         // Manual refresh button
-        document.getElementById('refreshBtn').addEventListener('click', function() {
-            loadIncidents();
-        });
+        const refreshBtn = document.getElementById('refreshBtn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function() {
+                loadIncidents();
+            });
+        }
 
         // Auto-refresh toggle
-        document.getElementById('autoRefreshToggle').addEventListener('change', function(e) {
-            toggleAutoRefresh(e.target.checked);
-        });
+        const autoRefreshToggle = document.getElementById('autoRefreshToggle');
+        if (autoRefreshToggle) {
+            autoRefreshToggle.addEventListener('change', function(e) {
+                toggleAutoRefresh(e.target.checked);
+            });
+        }
 
         // Initial load and setup
         loadIncidents();
@@ -169,9 +259,13 @@
             currentFilters.from = params.get('from') || '';
             currentFilters.to = params.get('to') || '';
 
-            document.getElementById('patientName').value = currentFilters.patientName;
-            document.getElementById('from').value = currentFilters.from;
-            document.getElementById('to').value = currentFilters.to;
+            const patientNameInput = document.getElementById('patientName');
+            const fromInput = document.getElementById('from');
+            const toInput = document.getElementById('to');
+
+            if (patientNameInput) patientNameInput.value = currentFilters.patientName;
+            if (fromInput) fromInput.value = currentFilters.from;
+            if (toInput) toInput.value = currentFilters.to;
 
             loadIncidents();
         });

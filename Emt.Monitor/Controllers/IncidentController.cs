@@ -87,4 +87,32 @@ public class IncidentController : Controller
             return PartialView("_IncidentTable", new List<IncidentViewModel>());
         }
     }
+
+    // Add this to IncidentController.cs
+    [HttpPost]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var client = _httpClientFactory.CreateClient("emtApi");
+        try
+        {
+            var response = await client.DeleteAsync($"/api/incidents/{id}");
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Deleted incident {Id}", id);
+                return Ok(new { success = true });
+            }
+
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return NotFound(new { success = false, message = "Incident not found" });
+            }
+
+            return StatusCode((int)response.StatusCode, new { success = false, message = "Failed to delete incident" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete incident {Id}", id);
+            return StatusCode(500, new { success = false, message = "Error deleting incident" });
+        }
+    }
 }
