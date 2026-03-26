@@ -42,4 +42,49 @@ public class IncidentController : Controller
             return View(new List<IncidentViewModel>());
         }
     }
+
+    public async Task<IActionResult> Details(int id)
+    {
+        var client = _httpClientFactory.CreateClient("emtApi");
+        try
+        {
+            var response = await client.GetAsync($"/api/incidents/{id}");
+            if (response.IsSuccessStatusCode)
+            {
+                using var stream = await response.Content.ReadAsStreamAsync();
+                var incident = await JsonSerializer.DeserializeAsync<IncidentViewModel>(stream, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                return PartialView("_IncidentDetails", incident);
+            }
+            return NotFound();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load incident {Id}", id);
+            return StatusCode(500);
+        }
+    }
+
+    public async Task<IActionResult> Table(string patientName = "", DateTime? from = null, DateTime? to = null)
+    {
+        var client = _httpClientFactory.CreateClient("emtApi");
+        var query = new List<string>();
+        if (!string.IsNullOrWhiteSpace(patientName)) query.Add($"patientName={Uri.EscapeDataString(patientName)}");
+        if (from.HasValue) query.Add($"from={Uri.EscapeDataString(from.Value.ToString("o"))}");
+        if (to.HasValue) query.Add($"to={Uri.EscapeDataString(to.Value.ToString("o"))}");
+
+        var url = "/api/incidents" + (query.Any() ? "?" + string.Join("&", query) : string.Empty);
+        try
+        {
+            var response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            using var stream = await response.Content.ReadAsStreamAsync();
+            var incidents = await JsonSerializer.DeserializeAsync<List<IncidentViewModel>>(stream, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+            return PartialView("_IncidentTable", incidents ?? new List<IncidentViewModel>());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load incidents for table");
+            return PartialView("_IncidentTable", new List<IncidentViewModel>());
+        }
+    }
 }

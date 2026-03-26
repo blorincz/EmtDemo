@@ -1,0 +1,59 @@
+﻿@model Emt.Monitor.Models.IncidentViewModel
+
+<div class="modal-header">
+    <h5 class="modal-title">Incident Details - @Model.PatientName</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="row">
+        <div class="col-md-6">
+            <dl class="row">
+                <dt class="col-sm-4">Incident ID</dt>
+                <dd class="col-sm-8">@Model.Id</dd>
+
+                <dt class="col-sm-4">Patient Name</dt>
+                <dd class="col-sm-8">@Model.PatientName</dd>
+
+                <dt class="col-sm-4">Date & Time</dt>
+                <dd class="col-sm-8">@Model.IncidentAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</dd>
+
+                <dt class="col-sm-4">Location</dt>
+                <dd class="col-sm-8">@Model.Location</dd>
+
+                <dt class="col-sm-4">Crew Member</dt>
+                <dd class="col-sm-8">@Model.CrewMember</dd>
+            </dl>
+        </div>
+        <div class="col-md-6">
+            <dl class="row">
+                <dt class="col-sm-4">Pulse</dt>
+                <dd class="col-sm-8">@Model.Pulse bpm</dd>
+
+                <dt class="col-sm-4">Blood Pressure</dt>
+                <dd class="col-sm-8">@Model.Systolic / @Model.Diastolic mmHg</dd>
+
+                <dt class="col-sm-4">Temperature</dt>
+                <dd class="col-sm-8">@Model.TemperatureC.ToString("F1") °C</dd>
+
+                <dt class="col-sm-4">SpO₂</dt>
+                <dd class="col-sm-8">@Model.SpO2 %</dd>
+
+                <dt class="col-sm-4">Respiratory Rate</dt>
+                <dd class="col-sm-8">@Model.RespiratoryRate breaths/min</dd>
+            </dl>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Notes))
+    {
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6>Notes</h6>
+                <p class="text-muted">@Model.Notes</p>
+            </div>
+        </div>
+    }
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+</div>
